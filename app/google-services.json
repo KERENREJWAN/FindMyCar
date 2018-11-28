@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "670056291603",
+    "firebase_url": "https://find-my-car-a715b.firebaseio.com",
+    "project_id": "find-my-car-a715b",
+    "storage_bucket": "find-my-car-a715b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:670056291603:android:583f7ddc50e088a7",
+        "android_client_info": {
+          "package_name": "com.rejwanb.findmycar"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "670056291603-db70u4ehp711u3j0u1k31958cu50etcj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6PfG5FCVufKN7eQUyOu0mcZn4tunrOhQ"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
