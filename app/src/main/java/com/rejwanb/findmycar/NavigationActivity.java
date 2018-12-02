@@ -15,6 +15,7 @@ import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.widget.SlidingPaneLayout;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -62,6 +63,7 @@ public class NavigationActivity extends AppCompatActivity
     double latitude = 0.0, longitude = 0.0;
     private Location currentLocation, prevLocation;
     private Marker marker;
+    private PrefManager prefManager;
 
     private DatabaseReference mLocationDatabaseReference;
 
@@ -193,12 +195,18 @@ public class NavigationActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            Intent i = new Intent(NavigationActivity.this, SettingsActivity.class);
-        }
-        else if (id == R.id.action_guide)
+      //  if (id == R.id.action_settings) {
+        //    Intent i = new Intent(NavigationActivity.this, SettingsActivity.class);
+        //    startActivity(i);
+      //  }
+      //  else
+        if (id == R.id.action_guide)
         {
-
+            prefManager = new PrefManager(this);
+            prefManager.setFirstTimeLaunch(true);
+            Intent i = new Intent(NavigationActivity.this, WelcomeActivity.class);
+            startActivity(i);
+            finish();
         }
 
         return super.onOptionsItemSelected(item);

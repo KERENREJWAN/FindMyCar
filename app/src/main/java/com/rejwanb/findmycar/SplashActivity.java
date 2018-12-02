@@ -115,7 +115,7 @@ public class SplashActivity extends AppCompatActivity {
             @Override
             public void run() {
                 //Do any action here. Now we are moving to next page
-                Intent mySuperIntent = new Intent(SplashActivity.this, LoginActivity.class);
+                Intent mySuperIntent = new Intent(SplashActivity.this, WelcomeActivity.class);
                 startActivity(mySuperIntent);
                 finish();
                 }
