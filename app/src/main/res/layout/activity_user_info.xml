@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#90AFC5"
-    tools:context=".UserInfoActivity">
+    tools:context=".User.UserInfoActivity">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -51,7 +51,7 @@
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:gravity="center_vertical|center_horizontal|center"
-            android:text="Tap on the buttons according to your needs"
+            android:text="What would you like to do?"
             android:textAppearance="@style/TextAppearance.AppCompat.Body2"
             android:textSize="18sp" />
 

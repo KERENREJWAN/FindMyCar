@@ -27,22 +27,22 @@
     <color name="shadow">#2a3132</color>
 
     <!-- Screens background color-->
-    <color name="bg_screen1">#f64c73</color>
-    <color name="bg_screen2">#20d2bb</color>
-    <color name="bg_screen3">#3395ff</color>
-    <color name="bg_screen4">#c873f4</color>
+    <color name="bg_screen1">#ED5752</color>
+    <color name="bg_screen2">#92aac7</color>
+    <color name="bg_screen3">#e2dfa2</color>
+    <color name="bg_screen4">#a1be95</color>
 
     <!-- dots inactive colors -->
-    <color name="dot_dark_screen1">#d1395c</color>
-    <color name="dot_dark_screen2">#14a895</color>
-    <color name="dot_dark_screen3">#2278d4</color>
-    <color name="dot_dark_screen4">#a854d4</color>
+    <color name="dot_dark_screen1">#d54e49</color>
+    <color name="dot_dark_screen2">#8399b3</color>
+    <color name="dot_dark_screen3">#cbc891</color>
+    <color name="dot_dark_screen4">#90ab86</color>
 
     <!-- dots active colors -->
-    <color name="dot_light_screen1">#f98da5</color>
-    <color name="dot_light_screen2">#8cf9eb</color>
-    <color name="dot_light_screen3">#93c6fd</color>
-    <color name="dot_light_screen4">#e4b5fc</color>
+    <color name="dot_light_screen1">#ee6763</color>
+    <color name="dot_light_screen2">#9cb2cc</color>
+    <color name="dot_light_screen3">#e7e5b4</color>
+    <color name="dot_light_screen4">#aac49f</color>
 
     <array name="array_dot_active">
         <item>@color/dot_light_screen1</item>

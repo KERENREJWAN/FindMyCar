@@ -1,4 +1,4 @@
-package com.rejwanb.findmycar;
+package com.rejwanb.findmycar.User;
 
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -16,6 +16,8 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.rejwanb.findmycar.IntroAndMain.NavigationActivity;
+import com.rejwanb.findmycar.R;
 
 public class LoginActivity extends AppCompatActivity {
 

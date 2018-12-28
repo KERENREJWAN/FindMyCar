@@ -1,4 +1,4 @@
-package com.rejwanb.findmycar;
+package com.rejwanb.findmycar.User;
 
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -19,6 +19,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.rejwanb.findmycar.IntroAndMain.NavigationActivity;
+import com.rejwanb.findmycar.R;
 
 public class SignupActivity extends AppCompatActivity {
 

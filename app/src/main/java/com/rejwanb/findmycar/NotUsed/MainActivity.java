@@ -1,4 +1,4 @@
-package com.rejwanb.findmycar;
+package com.rejwanb.findmycar.NotUsed;
 
 import android.annotation.SuppressLint;
 import android.support.v7.app.AppCompatActivity;
@@ -20,6 +20,8 @@ import android.support.annotation.Nullable;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.rejwanb.findmycar.IntroAndMain.NavigationActivity;
+import com.rejwanb.findmycar.R;
 
 
 public class MainActivity extends AppCompatActivity {

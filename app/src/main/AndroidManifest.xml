@@ -35,11 +35,11 @@
             android:resource="@array/preloaded_fonts" />
 
         <activity
-            android:name=".MapsActivity"
+            android:name=".NotUsed.MapsActivity"
             android:label="@string/title_activity_maps" />
-        <activity android:name=".MainActivity" />
+        <activity android:name=".NotUsed.MainActivity" />
         <activity
-            android:name=".SplashActivity"
+            android:name=".IntroAndMain.SplashActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -49,26 +49,26 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".LoginActivity"
+            android:name=".User.LoginActivity"
             android:label="Login" />
         <activity
-            android:name=".SignupActivity"
+            android:name=".User.SignupActivity"
             android:label="Sign Up" />
         <activity
-            android:name=".ResetPasswordActivity"
+            android:name=".User.ResetPasswordActivity"
             android:label="Reset Password" />
         <activity
-            android:name=".UserInfoActivity"
+            android:name=".User.UserInfoActivity"
             android:label="My Profile"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name=".NavigationActivity"
+            android:name=".IntroAndMain.NavigationActivity"
             android:label="Find My Car"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name=".SettingsActivity"
+            android:name=".NotUsed.SettingsActivity"
             android:label="@string/title_activity_settings" />
-        <activity android:name=".WelcomeActivity"
+        <activity android:name=".IntroAndMain.WelcomeActivity"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
     </application>

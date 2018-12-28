@@ -1,4 +1,4 @@
-package com.rejwanb.findmycar;
+package com.rejwanb.findmycar.IntroAndMain;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -7,16 +7,12 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.nfc.Tag;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.widget.SlidingPaneLayout;
-import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -34,19 +30,19 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.rejwanb.findmycar.R;
+import com.rejwanb.findmycar.User.LoginActivity;
+import com.rejwanb.findmycar.User.UserInfoActivity;
 
 public class NavigationActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
@@ -60,8 +56,8 @@ public class NavigationActivity extends AppCompatActivity
     private TextView nameDisplay, emailDisplay;
     private String name, email;
     private FirebaseDatabase mFirebaseDatabase;
-    double latitude = 0.0, longitude = 0.0;
-    private Location currentLocation, prevLocation;
+    double latitude = 0.0, longitude = 0.0, currentLatitude, currentLongitude, previousLatitude, previousLongitude;
+    private Location currentLocation, prevLocation, mPreviousLocation, mCurrentLocation;
     private Marker marker;
     private PrefManager prefManager;
 
@@ -106,14 +102,13 @@ public class NavigationActivity extends AppCompatActivity
             public void onLocationChanged(Location location) {
                 mLocationDatabaseReference.child("latitude").setValue(location.getLatitude());
                 mLocationDatabaseReference.child("longitude").setValue(location.getLongitude());
-                if (currentLocation != null) {
-                    prevLocation = currentLocation;
-                } else
-                    prevLocation = location;
-                currentLocation = location;
-               if (marker != null)
+              //  if (currentLocation != null) {
+               //     prevLocation = currentLocation;
+              //  } else
+              //      prevLocation = location;
+            //   if (marker != null)
                // if (latitude != location.getLatitude() && longitude != location.getLongitude())
-                    marker.remove();
+              //      marker.remove();
             }
 
             @Override
@@ -200,6 +195,8 @@ public class NavigationActivity extends AppCompatActivity
         //    startActivity(i);
       //  }
       //  else
+
+        //delete once im done programing it!!!!!!
         if (id == R.id.action_guide)
         {
             prefManager = new PrefManager(this);
@@ -229,9 +226,25 @@ public class NavigationActivity extends AppCompatActivity
             startActivity(sendIntent);
 
         } else if (id == R.id.nav_lastLoc) {
-             LatLng prev = new LatLng(prevLocation.getLatitude(), prevLocation.getLongitude());
-             Marker prevMarker = mMap.addMarker(new MarkerOptions().position(prev).title("Car's Previous Location"));
-             prevMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+           //  LatLng prev = new LatLng(mPreviousLocation.getLatitude(), mPreviousLocation.getLongitude());
+            //  Marker prevMarker = mMap.addMarker(new MarkerOptions().position(prev).title("Car's Previous Location"));
+         //     prevMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+           readPreviousLocation(new MyCallback() {
+                @Override
+                public void onCallback(double lat, double lng) {
+                    if (lat != 0.0 && lng != 0.0) {
+                        LatLng prevLoc = new LatLng(lat, lng);
+                        Marker prevMarker = mMap.addMarker(new MarkerOptions().position(prevLoc).title("Car's Previous Location"));
+                        prevMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lng), 17.0f));
+                    } else {
+                        LatLng location = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+                        Marker prevMarker = mMap.addMarker(new MarkerOptions().position(location).title("Car's Previous Location"));
+                        prevMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(location, 17.0f));
+                    }
+                }
+            });
 
         } else if (id == R.id.signout) {
             auth.signOut();
@@ -256,14 +269,36 @@ public class NavigationActivity extends AppCompatActivity
         void onCallback(double latitude, double longitude);
     }
 
-    public void readData(final MyCallback myCallback) {
+    public void readCurrentLocation(final MyCallback myCallback) {
         mLocationDatabaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.child("latitude").exists() && dataSnapshot.child("longitude").exists()) {
                     latitude = (Double) dataSnapshot.child("latitude").getValue();
                     longitude = (Double) dataSnapshot.child("longitude").getValue();
+
+                    mLocationDatabaseReference.child("Previous_latitude").setValue(latitude);
+                    mLocationDatabaseReference.child("Previous_longitude").setValue(longitude);
+
                     myCallback.onCallback(latitude, longitude);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                myCallback.onCallback(0.0, 0.0);
+            }
+        });
+    }
+
+    public void readPreviousLocation(final MyCallback myCallback) {
+        mLocationDatabaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.child("Previous_latitude").exists() && dataSnapshot.child("Previous_longitude").exists()) {
+                    previousLatitude = (Double) dataSnapshot.child("Previous_latitude").getValue();
+                    previousLongitude = (Double) dataSnapshot.child("Previous_longitude").getValue();
+                    myCallback.onCallback(previousLatitude, previousLongitude);
                 }
             }
 
@@ -277,7 +312,7 @@ public class NavigationActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        readData(new MyCallback() {
+        readCurrentLocation(new MyCallback() {
             @Override
             public void onCallback(double lat, double lng) {
                 if (lat != 0.0 && lng != 0.0) {
