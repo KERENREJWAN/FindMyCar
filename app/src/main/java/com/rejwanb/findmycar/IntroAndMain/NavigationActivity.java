@@ -2,7 +2,14 @@ package com.rejwanb.findmycar.IntroAndMain;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Notification;
+import android.app.PendingIntent;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -13,6 +20,7 @@ import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -40,6 +48,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.rejwanb.findmycar.NotUsed.ActivityRecognizedService;
 import com.rejwanb.findmycar.R;
 import com.rejwanb.findmycar.User.LoginActivity;
 import com.rejwanb.findmycar.User.UserInfoActivity;
@@ -56,12 +65,13 @@ public class NavigationActivity extends AppCompatActivity
     private TextView nameDisplay, emailDisplay;
     private String name, email;
     private FirebaseDatabase mFirebaseDatabase;
-    double latitude = 0.0, longitude = 0.0, currentLatitude, currentLongitude, previousLatitude, previousLongitude;
-    private Location currentLocation, prevLocation, mPreviousLocation, mCurrentLocation;
-    private Marker marker;
+    double latitude = 0.0, longitude = 0.0, previousLatitude, previousLongitude;
+    private Location currentLocation;
+    private Marker marker, prevMarker;
     private PrefManager prefManager;
-
+    boolean Save;
     private DatabaseReference mLocationDatabaseReference;
+    private NotificationUtils mNotificationUtils;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +102,14 @@ public class NavigationActivity extends AppCompatActivity
         mFirebaseDatabase = FirebaseDatabase.getInstance();
         mLocationDatabaseReference = mFirebaseDatabase.getReference().child(auth.getCurrentUser().getUid());
 
+        mNotificationUtils = new NotificationUtils(this);
+        IntentFilter filter1 = new IntentFilter(BluetoothDevice.ACTION_ACL_CONNECTED);
+        IntentFilter filter2 = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
+        IntentFilter filter3 = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+        this.registerReceiver(mReceiver, filter1);
+        this.registerReceiver(mReceiver, filter2);
+        this.registerReceiver(mReceiver, filter3);
+
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -100,15 +118,26 @@ public class NavigationActivity extends AppCompatActivity
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                mLocationDatabaseReference.child("latitude").setValue(location.getLatitude());
-                mLocationDatabaseReference.child("longitude").setValue(location.getLongitude());
-              //  if (currentLocation != null) {
-               //     prevLocation = currentLocation;
-              //  } else
-              //      prevLocation = location;
-            //   if (marker != null)
-               // if (latitude != location.getLatitude() && longitude != location.getLongitude())
-              //      marker.remove();
+                currentLocation = location;
+
+                readCurrentLocation(new MyCallback() {
+                    @Override
+                    public void onCallback(double lat, double lng) {
+                        if (Save) {
+                            mLocationDatabaseReference.child("Previous_latitude").setValue(lat);
+                            mLocationDatabaseReference.child("Previous_longitude").setValue(lng);
+                            mLocationDatabaseReference.child("latitude").setValue(currentLocation.getLatitude());
+                            mLocationDatabaseReference.child("longitude").setValue(currentLocation.getLongitude());
+                            Log.d("state", "setValue");
+                            Save = false;
+                        }
+                    }
+                });
+
+                if (marker != null)
+                   marker.remove();
+                if (prevMarker != null)
+                    prevMarker.remove();
             }
 
             @Override
@@ -129,16 +158,53 @@ public class NavigationActivity extends AppCompatActivity
         };
 
         configureButton();
+        startService(new Intent(this, NotificationService.class));
+        startService(new Intent(this, ActivityRecognizedService.class));
     }
+
+    //The BroadcastReceiver that listens for bluetooth broadcasts
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+
+            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                //Device found
+            } else if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
+                //Device is now connected
+            } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+                //Done searching
+            } else if (BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED.equals(action)) {
+                //Device is about to disconnect
+                Intent notificationIntent = new Intent(context, SplashActivity.class);
+                PendingIntent contentIntent = PendingIntent.getActivity(context,
+                        0, notificationIntent,
+                        PendingIntent.FLAG_CANCEL_CURRENT);
+                Notification.Builder nb = mNotificationUtils.
+                        getChannelNotification("Find My Car", "Would you like to save your location?");
+                nb.setSmallIcon(R.mipmap.ic_launcher);
+                nb.setContentIntent(contentIntent);
+                mNotificationUtils.getManager().notify(101, nb.build());
+            } else if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
+                //Device has disconnected
+                Intent notificationIntent = new Intent(context, SplashActivity.class);
+                PendingIntent contentIntent = PendingIntent.getActivity(context,
+                        0, notificationIntent,
+                        PendingIntent.FLAG_CANCEL_CURRENT);
+                Notification.Builder nb = mNotificationUtils.
+                        getChannelNotification("Find My Car", "Would you like to save your location?");
+                nb.setSmallIcon(R.mipmap.ic_launcher);
+                nb.setContentIntent(contentIntent);
+                mNotificationUtils.getManager().notify(101, nb.build());
+            }
+        };
+    };
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case 10:
-                configureButton();
-                break;
-            default:
-                break;
+        if (requestCode == 10) {
+           configureButton();
         }
     }
 
@@ -155,10 +221,13 @@ public class NavigationActivity extends AppCompatActivity
             @SuppressLint("MissingPermission")
             @Override
             public void onClick(View view) {
+                Save = true;
+              //  locationManager.requestSingleUpdate(LocationManager.NETWORK_PROVIDER, locationListener, null);
                 locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, 0, locationListener);
                 if (marker != null)
-               // if (latitude != 0.0 && longitude != 0.0)
                     marker.remove();
+                if (prevMarker != null)
+                    prevMarker.remove();
             }
         });
     }
@@ -226,25 +295,19 @@ public class NavigationActivity extends AppCompatActivity
             startActivity(sendIntent);
 
         } else if (id == R.id.nav_lastLoc) {
-           //  LatLng prev = new LatLng(mPreviousLocation.getLatitude(), mPreviousLocation.getLongitude());
-            //  Marker prevMarker = mMap.addMarker(new MarkerOptions().position(prev).title("Car's Previous Location"));
-         //     prevMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
            readPreviousLocation(new MyCallback() {
                 @Override
                 public void onCallback(double lat, double lng) {
                     if (lat != 0.0 && lng != 0.0) {
                         LatLng prevLoc = new LatLng(lat, lng);
-                        Marker prevMarker = mMap.addMarker(new MarkerOptions().position(prevLoc).title("Car's Previous Location"));
+                        prevMarker = mMap.addMarker(new MarkerOptions().position(prevLoc).title("Car's Previous Location"));
                         prevMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
                         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lng), 17.0f));
-                    } else {
-                        LatLng location = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-                        Marker prevMarker = mMap.addMarker(new MarkerOptions().position(location).title("Car's Previous Location"));
-                        prevMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
-                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(location, 17.0f));
                     }
                 }
             });
+            if (prevMarker != null)
+                prevMarker.remove();
 
         } else if (id == R.id.signout) {
             auth.signOut();
@@ -276,10 +339,6 @@ public class NavigationActivity extends AppCompatActivity
                 if (dataSnapshot.child("latitude").exists() && dataSnapshot.child("longitude").exists()) {
                     latitude = (Double) dataSnapshot.child("latitude").getValue();
                     longitude = (Double) dataSnapshot.child("longitude").getValue();
-
-                    mLocationDatabaseReference.child("Previous_latitude").setValue(latitude);
-                    mLocationDatabaseReference.child("Previous_longitude").setValue(longitude);
-
                     myCallback.onCallback(latitude, longitude);
                 }
             }
@@ -312,13 +371,21 @@ public class NavigationActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        if (marker != null)
+            marker.remove();
+        if (prevMarker != null)
+            prevMarker.remove();
         readCurrentLocation(new MyCallback() {
             @Override
             public void onCallback(double lat, double lng) {
                 if (lat != 0.0 && lng != 0.0) {
+                    if (marker != null)
+                        marker.remove();
                     LatLng location1 = new LatLng(lat, lng);
                     marker = mMap.addMarker(new MarkerOptions().position(location1).title("Car's Location"));
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lng), 17.0f));
+                    if (prevMarker != null)
+                        prevMarker.remove();
                 } else {
                    LatLng location = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
                    marker = mMap.addMarker(new MarkerOptions().position(location).title("Car's Location"));
@@ -327,9 +394,18 @@ public class NavigationActivity extends AppCompatActivity
             }
         });
     }
+
+    @Override
+    public void onDestroy(){
+        // call the superclass method first
+        super.onDestroy();
+        startService(new Intent(this, NotificationService.class));
+        startService(new Intent(this, ActivityRecognizedService.class));
+    }
 }
 
 
 //https://github.com/pR0Ps/LocationShare - how to share location
 //https://stackoverflow.com/questions/44977332/how-to-retrieve-location-which-is-saved-using-geofire-on-real-time-database-fire
 ////https://stackoverflow.com/questions/38340949/how-to-save-geofire-coordinates-along-with-other-items-in-firebase-database
+//https://stackoverflow.com/questions/4715865/how-to-programmatically-tell-if-a-bluetooth-device-is-connected-android-2-2   - check if connected to bluetooth device
